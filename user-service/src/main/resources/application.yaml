@@ -1,3 +1,7 @@
 spring:
   application:
     name: user-service
+
+app:
+  refresh-token:
+    expiration: 604800000
