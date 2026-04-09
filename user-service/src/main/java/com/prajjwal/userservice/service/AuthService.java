@@ -1,22 +1,25 @@
 package com.prajjwal.userservice.service;
 
-import com.prajjwal.userservice.dto.AuthResponse;
-import com.prajjwal.userservice.dto.LoginRequestDto;
-import com.prajjwal.userservice.dto.Packet;
-import com.prajjwal.userservice.dto.UserDto;
+import com.prajjwal.userservice.dto.*;
 import com.prajjwal.userservice.model.RefreshToken;
+import com.prajjwal.userservice.model.Role;
 import com.prajjwal.userservice.model.User;
 import com.prajjwal.userservice.repository.RefreshTokenRepository;
 import com.prajjwal.userservice.repository.UserRepository;
 import com.prajjwal.userservice.util.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.*;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -25,10 +28,12 @@ public class AuthService {
     private final JwtTokenUtil jwtTokenUtil;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${app.refresh-token.expiration}")
     private Long refreshTokenExpiration;
 
+    @Transactional
     public Packet<AuthResponse> login(LoginRequestDto loginRequest) {
         Packet<AuthResponse> packet = new Packet<>();
 
@@ -48,7 +53,9 @@ public class AuthService {
         }
 
         User user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        refreshTokenRepository.revokeAllByUser(user);
 
         String accessToken = jwtTokenUtil.generateToken(user);
         String refreshToken = createRefreshToken(user);
@@ -63,6 +70,59 @@ public class AuthService {
         return packet.ok(response);
     }
 
+    @Transactional
+    public Packet<UserDto> register(RegistrationRequestDto registrationRequest, Role role) {
+        if (userRepository.existsByEmail(registrationRequest.getEmail())) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+        Packet<UserDto> packet = new Packet<>();
+
+        User user = new User();
+        user.setEmail(registrationRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
+        user.setFirstName(registrationRequest.getFirstName());
+        user.setLastName(registrationRequest.getLastName());
+        user.setRole(role);
+
+        userRepository.save(user);
+
+        return packet.ok(buildUserResponse(user));
+    }
+
+    @Transactional
+    public void logout(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        refreshTokenRepository.revokeAllByUser(user);
+        log.info("User logged out email: {}", email);
+    }
+
+    public void forgetPassword() {
+
+    }
+
+    @Transactional
+    public Packet<AuthResponse> refreshToken(String token) {
+        RefreshToken refreshToken = validateRefreshToken(token);
+        Packet<AuthResponse> packet = new Packet<>();
+        User user = refreshToken.getUser();
+
+        refreshToken.setRevoked(true);
+        refreshTokenRepository.save(refreshToken);
+
+        String newAccessToken = jwtTokenUtil.generateToken(user);
+        String newRefreshToken = createRefreshToken(user);
+
+        AuthResponse authResponse = new AuthResponse(newAccessToken,
+                newRefreshToken,
+                buildUserResponse(user),
+                user.getEmail()
+        );
+
+        return packet.ok(authResponse);
+    }
+
     private String createRefreshToken(User user) {
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(UUID.randomUUID().toString())
@@ -72,6 +132,21 @@ public class AuthService {
                 .build();
 
         return refreshTokenRepository.save(refreshToken).getToken();
+    }
+
+    private RefreshToken validateRefreshToken(String token) {
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+
+        if (refreshToken.isRevoked()) {
+            refreshTokenRepository.revokeAllByUser(refreshToken.getUser());
+            throw new IllegalArgumentException("Security violation detected.");
+        }
+        if (refreshToken.getExpiryTime().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Session expired");
+        }
+
+        return refreshToken;
     }
 
     private UserDto buildUserResponse(User user) {
