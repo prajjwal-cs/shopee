@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,5 +22,9 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID
 
     @Modifying
     @Query("DELETE FROM RefreshToken r WHERE r.revoked = true OR r.expiryTime < CURRENT_TIMESTAMP")
-    void deleAllExpiredOrRevoked();
+    void deleteAllExpiredOrRevoked();
+
+    @Query("SELECT r FROM RefreshToken r WHERE r.user = :user AND r.revoked = false")
+    List<RefreshToken> findActiveTokensByUser(User user);
+
 }
