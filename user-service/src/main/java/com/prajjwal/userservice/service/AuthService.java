@@ -1,6 +1,9 @@
 package com.prajjwal.userservice.service;
 
 import com.prajjwal.userservice.dto.*;
+import com.prajjwal.userservice.exception.EmailAlreadyExistsException;
+import com.prajjwal.userservice.exception.InvalidTokenException;
+import com.prajjwal.userservice.exception.TokenExpiredException;
 import com.prajjwal.userservice.model.RefreshToken;
 import com.prajjwal.userservice.model.Role;
 import com.prajjwal.userservice.model.User;
@@ -72,8 +75,9 @@ public class AuthService {
 
     @Transactional
     public Packet<UserDto> register(RegistrationRequestDto registrationRequest, Role role) {
+        // check for user
         if (userRepository.existsByEmail(registrationRequest.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new EmailAlreadyExistsException(registrationRequest.getEmail());
         }
         Packet<UserDto> packet = new Packet<>();
 
@@ -140,10 +144,10 @@ public class AuthService {
 
         if (refreshToken.isRevoked()) {
             refreshTokenRepository.revokeAllByUser(refreshToken.getUser());
-            throw new IllegalArgumentException("Security violation detected.");
+            throw new InvalidTokenException("Security violation detected.");
         }
         if (refreshToken.getExpiryTime().isBefore(Instant.now())) {
-            throw new IllegalArgumentException("Session expired");
+            throw new TokenExpiredException("Session expired, Please login again.");
         }
 
         return refreshToken;

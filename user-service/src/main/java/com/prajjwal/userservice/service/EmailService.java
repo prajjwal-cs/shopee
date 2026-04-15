@@ -21,10 +21,10 @@ public class EmailService {
     private String fromEmail;
 
     @Async
-    public void sendPasswordResentEmail(String toEmail, String token) {
+    public void sendPasswordResetEmail(String toEmail, String token) {
         String resetLink = frontendUrl + "/reset-password?token=" + token;
 
-        SimpleMailMessage  message = new SimpleMailMessage();
+        SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromEmail);
         message.setTo(toEmail);
         message.setSubject("Reset your Shopee password");

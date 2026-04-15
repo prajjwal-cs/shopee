@@ -5,7 +5,6 @@ import com.prajjwal.userservice.model.Role;
 import com.prajjwal.userservice.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.bouncycastle.util.Pack;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;

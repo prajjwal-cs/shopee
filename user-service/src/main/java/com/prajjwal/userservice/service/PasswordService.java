@@ -4,6 +4,9 @@ import com.prajjwal.userservice.dto.ForgetPasswordRequestDto;
 import com.prajjwal.userservice.dto.Packet;
 import com.prajjwal.userservice.dto.ResetPasswordRequestDto;
 import com.prajjwal.userservice.dto.UpdatePasswordRequestDto;
+import com.prajjwal.userservice.exception.InvalidPasswordException;
+import com.prajjwal.userservice.exception.InvalidTokenException;
+import com.prajjwal.userservice.exception.TokenExpiredException;
 import com.prajjwal.userservice.model.PasswordResetToken;
 import com.prajjwal.userservice.model.User;
 import com.prajjwal.userservice.repository.PasswordResetTokenRepository;
@@ -51,7 +54,7 @@ public class PasswordService {
                     .build();
 
             resetTokenRepository.save(resetToken);
-            emailService.sendPasswordResentEmail(user.getEmail(), token);
+            emailService.sendPasswordResetEmail(user.getEmail(), token);
             log.info("Password reset requested for user: {}", user.getEmail());
         });
 
@@ -67,14 +70,14 @@ public class PasswordService {
                 .orElse(null);
 
         if (resetToken == null) {
-            return packet.badRequest("Invalid or expired reset link");
+            throw new InvalidTokenException("Invalid or expired reset link");
         }
         if (resetToken.isUsed()) {
-            return packet.badRequest("This reset link has already been used");
+            throw new InvalidTokenException("This reset link has already been used.");
         }
 
         if (resetToken.getExpiryTime().isBefore(Instant.now())) {
-            return packet.badRequest("Reset link has expired. Please request a new one.");
+            throw new TokenExpiredException("Reset link has expired. Please request a new one.");
         }
 
         User user = resetToken.getUser();
@@ -102,8 +105,8 @@ public class PasswordService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        if (!passwordEncoder.matches(request.getCurrenPassword(), user.getPassword())) {
-            return packet.badRequest("Current password is incorrect");
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new InvalidPasswordException("Current password is incorrect");
         }
 
         if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
