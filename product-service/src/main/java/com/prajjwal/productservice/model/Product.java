@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.w3c.dom.stylesheets.LinkStyle;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -37,7 +36,7 @@ public class Product {
 
     @Column(nullable = false, unique = true)
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String sku;
+    private UUID sku;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
