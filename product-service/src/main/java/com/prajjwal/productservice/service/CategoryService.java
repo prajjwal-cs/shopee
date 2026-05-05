@@ -74,11 +74,11 @@ public class CategoryService {
     }
     // deleteCategory
     @Transactional
-    public Packet<Object> deleteCategory(UUID id) {
+    public Packet<String> deleteCategory(UUID id) {
         Category category = findOrThrow(id);
         category.setActive(false);
         categoryRepository.save(category);
-        return new Packet<>().ok("Category " + category.getName() + " changed to inactive successfully");
+        return new Packet<String>().ok("Category " + category.getName() + " changed to inactive successfully");
     }
 
     // findOrThrow(id)
