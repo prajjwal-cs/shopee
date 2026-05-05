@@ -14,7 +14,7 @@ public class ProductDto {
     private UUID id;
     private String name;
     private String description;
-    private UUID sku;
+    private String sku;
     private BigDecimal price;
     private BigDecimal discountPrice;
     private BigDecimal effectivePrice;

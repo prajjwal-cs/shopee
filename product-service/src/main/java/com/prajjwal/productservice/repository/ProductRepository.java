@@ -15,9 +15,9 @@ import java.util.UUID;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, UUID> {
 
-    boolean existsBySku(UUID skuId);
+    boolean existsBySku(String skuId);
 
-    Optional<Product> findBySkuAndActiveTrue(UUID sku);
+    Optional<Product> findBySkuAndActiveTrue(String sku);
 
     @Query("""
             SELECT p FROM Product p
@@ -40,5 +40,5 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 
     @Modifying
     @Query("UPDATE Product p SET p.stock = p.stock + :quantity WHERE p.id = :id")
-    void addStock(@Param("id") UUID id, @Param("quantity") int quantity);
+    int addStock(@Param("id") UUID id, @Param("quantity") int quantity);
 }

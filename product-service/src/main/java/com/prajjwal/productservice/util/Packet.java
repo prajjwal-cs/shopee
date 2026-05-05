@@ -19,7 +19,7 @@ public class Packet<T> implements Serializable {
     private T data;
     private ErrorDto error;
 
-    private Packet<T> ok(T data) {
+    public Packet<T> ok(T data) {
         this.success = true;
         this.data = data;
         this.error = null;

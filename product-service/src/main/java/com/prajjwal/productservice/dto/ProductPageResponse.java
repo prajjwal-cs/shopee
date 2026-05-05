@@ -10,7 +10,7 @@ import java.util.List;
 public class ProductPageResponse {
     private List<ProductDto> products;
     private int currentPage;
-    private int TotalPages;
+    private int totalPages;
     private long totalElements;
     private boolean last;
 }

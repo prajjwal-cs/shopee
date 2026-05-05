@@ -35,8 +35,7 @@ public class Product {
     private String description;
 
     @Column(nullable = false, unique = true)
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID sku;
+    private String sku;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;

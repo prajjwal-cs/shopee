@@ -15,6 +15,9 @@ public class CreateProductRequestDto {
 
     private String description;
 
+    @NotBlank(message = "SKU is required for every product")
+    private String sku;
+
     @NotBlank(message = "Price is required")
     @DecimalMin(value = "0.01", message = "Price must be greater than 0")
     private BigDecimal price;
