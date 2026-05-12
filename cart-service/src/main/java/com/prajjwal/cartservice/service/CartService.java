@@ -1,4 +1,4 @@
-package com.prajjwal.cartservice;
+package com.prajjwal.cartservice.service;
 
 import com.prajjwal.cartservice.client.ProductServiceClient;
 import com.prajjwal.cartservice.dto.*;
