@@ -11,7 +11,7 @@ import java.util.UUID;
 @Builder
 public class CartDto {
     private UUID cartId;
-    private String userId;
+    private UUID userId;
     private List<CartItemDto> items;
     private BigDecimal total;
     private int itemCount;

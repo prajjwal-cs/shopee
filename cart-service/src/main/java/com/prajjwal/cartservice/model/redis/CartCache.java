@@ -19,7 +19,7 @@ import java.util.UUID;
 public class CartCache implements Serializable {
 
     private UUID cartId;
-    private String userId;
+    private UUID userId;
 
     @Builder.Default
     private List<CartItemCache> items = new ArrayList<>();
@@ -32,10 +32,10 @@ public class CartCache implements Serializable {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    @Builder
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
+    @Builder
     public static class CartItemCache implements Serializable{
         private UUID cartItemId;
         private UUID productId;
