@@ -38,6 +38,9 @@ public class OrderItem {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal subtotal;
+
     private String imageUrl;
 
     private boolean reviewed = false;

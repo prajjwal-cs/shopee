@@ -31,6 +31,9 @@ public class Order {
     @Column(nullable = false)
     private UUID userId;
 
+    @Column(nullable = false, unique = true)
+    private String orderNumber;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
@@ -47,13 +50,19 @@ public class Order {
     private ShippingAddress shippingAddress;
 
     @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal subTotal;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal discount = BigDecimal.ZERO;
+
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
-    private String paymentIntentId;
+    private String paymentId;
 
     private String cancellationReason;
 
-    private String supportTicketId;
+    private String returnReason;
 
     @CreationTimestamp
     private Instant createdAt;
@@ -63,6 +72,7 @@ public class Order {
 
     private Instant shippedAt;
     private Instant deliveredAt;
+    private Instant cancelledAt;
 
     public boolean isCancellable() {
         return status == OrderStatus.PENDING || status == OrderStatus.CONFIRMED;
